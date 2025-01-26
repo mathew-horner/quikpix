@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::Path;
 
 #[derive(Clone, Copy)]
-pub struct Color(u8, u8, u8);
+pub struct Color(pub u8, pub u8, pub u8);
 
 impl Color {
     pub const BLACK: Self = Self(0, 0, 0);
