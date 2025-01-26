@@ -55,7 +55,8 @@ impl Pixels {
             .read_line(&mut buf)
             .expect("failed to read magic value line in header");
 
-        if buf != "P3" {
+        // read_line yields the trailing new line, so throughout this function we must explicitly strip it away
+        if &buf[..buf.len() - 1] != "P3" {
             panic!("magic value does not indicate that this file is an ASCII Portable PixMap file");
         }
 
@@ -64,7 +65,7 @@ impl Pixels {
             .read_line(&mut buf)
             .expect("failed to read image size line in header");
 
-        let tokens: Vec<_> = buf.split(' ').collect();
+        let tokens: Vec<_> = buf[..buf.len() - 1].split(' ').collect();
         if tokens.len() != 2 {
             panic!("image dimensions in header were in the wrong format");
         }
@@ -77,7 +78,7 @@ impl Pixels {
             .read_line(&mut buf)
             .expect("failed to read color channel max value in header");
 
-        if buf != "255" {
+        if &buf[..buf.len() - 1] != "255" {
             panic!("this library only supports color channel max values of 255 (u8)");
         }
 
@@ -152,6 +153,13 @@ impl Pixels {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn read() {
+        let pixels = Pixels::read("./test-fixtures/out.ppm");
+        assert_eq!(pixels.width(), 91);
+        assert_eq!(pixels.height(), 91);
+    }
 
     #[test]
     fn taste_the_rainbow() {
