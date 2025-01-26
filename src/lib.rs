@@ -116,7 +116,11 @@ impl Pixels {
     }
 
     pub fn save(&self, path: impl AsRef<Path>) {
-        let temp_path = PathBuf::from(path.as_ref()).join(".tmp");
+        let mut temp_path = PathBuf::from(path.as_ref());
+        let extension = temp_path.extension().unwrap().to_str().unwrap().to_owned();
+        let extension = format!("{extension}.tmp");
+        temp_path.set_extension(extension);
+
         let mut file = File::create(&temp_path).expect("failed to create file");
 
         // Magic value to indicate that this file is written using the ASCII Portable PixMap representation.
