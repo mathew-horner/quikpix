@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Copy)]
 pub struct Color(pub u8, pub u8, pub u8);
@@ -116,7 +116,8 @@ impl Pixels {
     }
 
     pub fn save(&self, path: impl AsRef<Path>) {
-        let mut file = File::create(path).expect("failed to create file");
+        let temp_path = PathBuf::from(path.as_ref()).join(".tmp");
+        let mut file = File::create(&temp_path).expect("failed to create file");
 
         // Magic value to indicate that this file is written using the ASCII Portable PixMap representation.
         file.write_all(b"P3\n")
@@ -139,6 +140,8 @@ impl Pixels {
                 panic!("failed to write pixel at x={x} y={y}: {error}");
             }
         }
+
+        std::fs::rename(temp_path, path).expect("failed to swap temp file");
     }
 
     pub fn width(&self) -> usize {
