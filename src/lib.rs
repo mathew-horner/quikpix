@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 
 #[derive(Clone, Copy)]
@@ -44,6 +44,74 @@ impl Pixels {
             );
         }
         idx
+    }
+
+    pub fn read(path: impl AsRef<Path>) -> Self {
+        let file = File::open(path).expect("failed to open file");
+        let mut reader = BufReader::new(file);
+
+        let mut buf = String::new();
+        _ = reader
+            .read_line(&mut buf)
+            .expect("failed to read magic value line in header");
+
+        if buf != "P3" {
+            panic!("magic value does not indicate that this file is an ASCII Portable PixMap file");
+        }
+
+        buf.clear();
+        _ = reader
+            .read_line(&mut buf)
+            .expect("failed to read image size line in header");
+
+        let tokens: Vec<_> = buf.split(' ').collect();
+        if tokens.len() != 2 {
+            panic!("image dimensions in header were in the wrong format");
+        }
+
+        let width: usize = tokens[0].parse().expect("failed to parse width");
+        let height: usize = tokens[1].parse().expect("failed to parse height");
+
+        buf.clear();
+        _ = reader
+            .read_line(&mut buf)
+            .expect("failed to read color channel max value in header");
+
+        if buf != "255" {
+            panic!("this library only supports color channel max values of 255 (u8)");
+        }
+
+        let pixel_count = width * height;
+        let mut data = Vec::with_capacity(pixel_count);
+
+        for (idx, line) in reader.lines().enumerate() {
+            if idx >= pixel_count {
+                panic!("more pixels in body than indicated in header");
+            }
+
+            let line = line.expect("failed to read pixel line");
+            let tokens: Vec<_> = line.split(' ').collect();
+
+            if tokens.len() != 3 {
+                panic!("pixel line {idx} was in the wrong format");
+            }
+
+            let r: u8 = tokens[0].parse().expect("failed to parse red channel");
+            let g: u8 = tokens[1].parse().expect("failed to parse green channel");
+            let b: u8 = tokens[2].parse().expect("failed to parse blue channel");
+
+            data.push(Color(r, g, b));
+        }
+
+        if data.len() < pixel_count {
+            panic!("less pixels in body than indicated in header");
+        }
+
+        Self {
+            data,
+            width,
+            height,
+        }
     }
 
     pub fn save(&self, path: impl AsRef<Path>) {
