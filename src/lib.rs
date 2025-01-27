@@ -25,6 +25,13 @@ impl Pixels {
         }
     }
 
+    pub fn iter<'a>(&'a self) -> Iter<'a> {
+        Iter {
+            pixels: self,
+            index: 0,
+        }
+    }
+
     pub fn get(&self, x: usize, y: usize) -> Color {
         let idx = self.idx(x, y);
         self.data[idx]
@@ -154,6 +161,26 @@ impl Pixels {
 
     pub fn height(&self) -> usize {
         self.height
+    }
+}
+
+pub struct Iter<'a> {
+    pixels: &'a Pixels,
+    index: usize,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = (usize, usize, Color);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index > self.pixels.width * self.pixels.height {
+            return None;
+        }
+        let color = self.pixels.data[self.index];
+        let x = self.index % self.pixels.width;
+        let y = self.index / self.pixels.width;
+        self.index += 1;
+        Some((x, y, color))
     }
 }
 
