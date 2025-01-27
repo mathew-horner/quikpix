@@ -173,7 +173,7 @@ impl<'a> Iterator for Iter<'a> {
     type Item = (usize, usize, Color);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index > self.pixels.width * self.pixels.height {
+        if self.index >= self.pixels.width * self.pixels.height {
             return None;
         }
         let color = self.pixels.data[self.index];
