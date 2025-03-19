@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 
+/// RGB color
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct Color(pub u8, pub u8, pub u8);
 
@@ -25,11 +26,13 @@ impl Pixels {
         }
     }
 
+    /// Get the pixel color at the given (`x`, `y`) coordinates.
     pub fn get(&self, x: usize, y: usize) -> Color {
         let idx = self.idx(x, y);
         self.data[idx]
     }
 
+    /// Set the pixel color at the given (`x`, `y`) coordinates.
     pub fn set(&mut self, x: usize, y: usize, color: Color) {
         let idx = self.idx(x, y);
         self.data[idx] = color;
@@ -46,6 +49,9 @@ impl Pixels {
         idx
     }
 
+    /// Read a [`ppm`](https://en.wikipedia.org/wiki/Netpbm) file.
+    ///
+    /// This function currently only supports the ASCII `ppm` format.
     pub fn read(path: impl AsRef<Path>) -> Self {
         let file = File::open(path).expect("failed to open file");
         let mut reader = BufReader::new(file);
@@ -115,6 +121,9 @@ impl Pixels {
         }
     }
 
+    /// Save the pixel grid as a [`ppm`](https://en.wikipedia.org/wiki/Netpbm) file.
+    ///
+    /// This function currently only supports the ASCII `ppm` format.
     pub fn save(&self, path: impl AsRef<Path>) {
         let mut temp_path = PathBuf::from(path.as_ref());
         let extension = temp_path.extension().unwrap().to_str().unwrap().to_owned();
